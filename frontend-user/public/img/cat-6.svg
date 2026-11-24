@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="800" viewBox="0 0 800 800">
+  <defs>
+    <filter id="paper">
+      <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" result="n"/>
+      <feColorMatrix in="n" type="matrix" values="0 0 0 0 0.55 0 0 0 0 0.52 0 0 0 0 0.46 0 0 0 0.04 0"/>
+      <feComposite operator="over" in2="SourceGraphic"/>
+    </filter>
+  </defs>
+  <rect width="800" height="800" fill="#f3f0e9"/>
+  <rect width="800" height="800" filter="url(#paper)"/>
+  <!-- 书籍三册 -->
+  <g fill="none" stroke="#1f4a3c" stroke-width="7" opacity=".82" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="286" y="330" width="70" height="260" rx="4"/>
+    <rect x="368" y="296" width="84" height="294" rx="4"/>
+    <rect x="466" y="352" width="64" height="238" rx="4"/>
+    <path d="M382 340 h56" stroke-width="4" opacity=".55"/>
+    <path d="M300 372 h42" stroke-width="4" opacity=".55"/>
+  </g>
+  <circle cx="576" cy="330" r="12" fill="#a4763a" opacity=".85"/>
+  <text x="400" y="700" text-anchor="middle" font-family="Songti SC,STSong,SimSun,serif" font-size="34" letter-spacing="16" fill="#16181a">图书音像</text>
+  <text x="400" y="736" text-anchor="middle" font-family="Georgia,serif" font-size="13" letter-spacing="6" fill="#8b8f93">BOOKS &amp; MEDIA · 06</text>
+  <rect x="60" y="60" width="680" height="680" fill="none" stroke="#d2ccc0" stroke-width="1.5"/>
+</svg>

@@ -1,0 +1,26 @@
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    # 连接信息支持环境变量覆盖，便于 Docker / 云环境部署
+    # 本机开发默认连接 3307 上的 MySQL 8.0 实例（本机 3306 被旧版 MySQL 占用）；
+    # 若你的 MySQL 在 3306，设置环境变量 MYSQL_PORT=3306 覆盖即可（Docker Compose 已显式注入 3306）
+    url: jdbc:mysql://${MYSQL_HOST:localhost}:${MYSQL_PORT:3307}/${MYSQL_DATABASE:ecommerce}?useUnicode=true&characterEncoding=utf8&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai&rewriteBatchedStatements=true&createDatabaseIfNotExist=true
+    username: ${MYSQL_USERNAME:root}
+    password: ${MYSQL_PASSWORD:123456}
+    hikari:
+      pool-name: EcommerceHikari
+      minimum-idle: 4
+      maximum-pool-size: 16
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+  sql:
+    init:
+      # schema 与 data 脚本均为幂等脚本（CREATE TABLE IF NOT EXISTS / INSERT ... WHERE NOT EXISTS），
+      # 每次启动执行也不会丢失或重复数据
+      mode: always
+      schema-locations: classpath:db/schema-mysql.sql
+      data-locations: classpath:db/data-mysql.sql
+      continue-on-error: false
+      encoding: UTF-8
+

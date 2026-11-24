@@ -1,0 +1,142 @@
+services:
+  # ============================================================
+  # 0. MySQL · 业务数据库（8.0，utf8mb4，持久化数据卷）
+  # ============================================================
+  mysql:
+    image: mysql:8.0
+    container_name: ecommerce-mysql
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --default-authentication-plugin=mysql_native_password
+      - --sql-mode=ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-123456}
+      MYSQL_DATABASE: ecommerce
+      TZ: Asia/Shanghai
+    ports:
+      # 宿主机 3307 → 容器 3306：避免与本机已装的 MySQL(3306) 冲突，
+      # 与本地开发默认连接端口 3307 保持一致；服务器上可用 MYSQL_HOST_PORT 覆盖
+      - "${MYSQL_HOST_PORT:-3307}:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      # 用容器内的 MYSQL_ROOT_PASSWORD 展开，避免改密码后健康检查永远失败
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p$$MYSQL_ROOT_PASSWORD --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+    restart: unless-stopped
+    networks:
+      - ecommerce-net
+
+  # ============================================================
+  # 1. API Gateway · 统一入口（微服务网关模式）
+  #    唯一对外暴露端口，内部网络路由到各服务
+  # ============================================================
+  gateway:
+    build:
+      context: ./gateway
+      dockerfile: Dockerfile
+    image: ecommerce-gateway:latest
+    container_name: ecommerce-gateway
+    ports:
+      - "${GATEWAY_PORT:-8080}:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+      frontend-user:
+        condition: service_started
+      frontend-admin:
+        condition: service_started
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+    networks:
+      - ecommerce-net
+
+  # ============================================================
+  # 2. 后端 · 模块化单体 Spring Boot（含 user/product/order/cart 业务域）
+  #    通过 Gateway 对外提供 REST API（数据库切换为 MySQL）
+  # ============================================================
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    image: ecommerce-backend:latest
+    container_name: ecommerce-backend
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      MYSQL_HOST: mysql
+      MYSQL_PORT: "3306"
+      MYSQL_DATABASE: ecommerce
+      MYSQL_USERNAME: root
+      MYSQL_PASSWORD: ${MYSQL_ROOT_PASSWORD:-123456}
+      JWT_SECRET: ${JWT_SECRET:-CHANGE_ME_SET_A_32_BYTE_SECRET_BEFORE_DEPLOY}
+      TZ: Asia/Shanghai
+      JAVA_TOOL_OPTIONS: ${JAVA_TOOL_OPTIONS:--XX:MaxRAMPercentage=70}
+    # 就绪探针：TCP 探测 8080（JRE 镜像内无 curl/wget，使用 bash 的 /dev/tcp）
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c '</dev/tcp/127.0.0.1/8080' || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 20
+      start_period: 90s
+    restart: unless-stopped
+    networks:
+      - ecommerce-net
+
+  # ============================================================
+  # 3. 用户端前端 · Vue 3 SPA（Nginx 托管静态文件）
+  # ============================================================
+  frontend-user:
+    build:
+      context: ./frontend-user
+      dockerfile: Dockerfile
+    image: ecommerce-frontend-user:latest
+    container_name: ecommerce-frontend-user
+    depends_on:
+      - backend
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1/ >/dev/null || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+    restart: unless-stopped
+    networks:
+      - ecommerce-net
+
+  # ============================================================
+  # 4. 管理端前端 · Vue 3 SPA（Nginx 托管静态文件）
+  # ============================================================
+  frontend-admin:
+    build:
+      context: ./frontend-admin
+      dockerfile: Dockerfile
+    image: ecommerce-frontend-admin:latest
+    container_name: ecommerce-frontend-admin
+    depends_on:
+      - backend
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1/ >/dev/null || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+    restart: unless-stopped
+    networks:
+      - ecommerce-net
+
+volumes:
+  mysql-data:
+
+networks:
+  ecommerce-net:
+    driver: bridge

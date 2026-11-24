@@ -1,0 +1,59 @@
+server:
+  port: 8080
+  servlet:
+    context-path: /api
+  # 友好的接口错误页，减少堆栈外泄
+  error:
+    include-message: never
+    include-stacktrace: never
+
+spring:
+  application:
+    name: ecommerce-backend
+  profiles:
+    active: dev
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
+    time-zone: GMT+8
+    default-property-inclusion: non_null
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 50MB
+
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+    # 生产环境关闭 SQL 打印（避免泄露数据），调试时可临时打开
+    # log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  global-config:
+    db-config:
+      id-type: auto
+      db-type: mysql
+      logic-delete-field: deleted
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+  mapper-locations: classpath*:mapper/**/*.xml
+
+# JWT：密钥优先从环境变量 JWT_SECRET 读取（生产必须设置）
+jwt:
+  secret: ${JWT_SECRET:CHANGE_ME_SET_A_32_BYTE_SECRET_BEFORE_DEPLOY}
+  expiration: 86400000
+  header: Authorization
+  prefix: "Bearer "
+
+# 分页限制
+page:
+  default-size: 10
+  max-size: 100
+
+# 订单超时自动取消配置
+order:
+  timeout-minutes: 30
+  timeout-scan-ms: 300000
+
+logging:
+  level:
+    root: INFO
+    com.ecommerce: INFO
+    com.baomidou.mybatisplus: WARN
