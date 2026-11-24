@@ -383,7 +383,7 @@ ecommerce-system/
 | [`docs/concurrent-login-test.md`](docs/concurrent-login-test.md) | 单设备登录测试报告 |
 | [`docs/ppt/星选商城项目ppt.pptx`](docs/ppt/星选商城项目ppt.pptx) | 项目介绍 PPT（20 页，16:9；覆盖用户端 23 页 / 管理端 14 页 / 16 个业务域 / 21 张表 / 会话存储 / 服务器部署口径） |
 | [`项目报告.docx`](项目报告.docx) | 项目报告（Word 文档） |
-| [`截图/1.png`](截图/1.png) ｜ [`截图/2.png`](截图/2.png) | 用户端 / 管理端界面截图（界面留档） |
+| [`截图/1.png`](截图/1.png) | 用户端首页界面截图（界面留档） |
 
 ### 仓库文件约定
 
