@@ -25,9 +25,6 @@ backend/data/
 *.mv.db
 *.trace.db
 
-# 内置 Maven（体积大，不入库）
-backend/maven/
-
 # 本地工具数据 / 工作记录
 .workbuddy-ai/
 
